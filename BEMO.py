@@ -23,11 +23,13 @@
 # THE SOFTWARE.
 import logging
 import sys
+import signal
 import time
 
 import csv
 
 from Adafruit_BNO055 import BNO055
+import RPi.GPIO as GPIO
 
 # Create and configure the BNO sensor connection.  Make sure only ONE of the
 # below 'bno = ...' lines is uncommented:
@@ -68,28 +70,46 @@ iterations = 0
 data_file = open("data.csv", mode='w')
 data_writer = csv.writer(data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-print('Reading BNO055 data, press Ctrl-C to quit...')
-while True:
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(17, GPIO.OUT)
+GPIO.output(17, GPIO.HIGH)
 
-    t = time.time()
+time.sleep(2.0)
+GPIO.output(17, GPIO.LOW)
+
+print('Reading BNO055 data, press Ctrl-C to quit...')
+start = time.time()
+
+def exit(sig, frame):
+    GPIO.output(17, GPIO.LOW)
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, exit)
+# signal.pause()
+
+
+while True:
+    t = time.time() - start
     # Read the Euler angles for heading, roll, pitch (all in degrees).
     heading, roll, pitch = bno.read_euler()
     # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
     sys, gyro, accel, mag = bno.get_calibration_status()
     # Print everything out.
-    print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}\tSys_cal={3} Gyro_cal={4} Accel_cal={5} Mag_cal={6}'.format(
-          heading, roll, pitch, sys, gyro, accel, mag))
+    # print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}\tSys_cal={3} Gyro_cal={4} Accel_cal={5} Mag_cal={6}'.format(
+    #       heading, roll, pitch, sys, gyro, accel, mag))
     # Other values you can optionally read:
     # Orientation as a quaternion:
     #x,y,z,w = bno.read_quaterion()
     # Sensor temperature in degrees Celsius:
     #temp_c = bno.read_temp()
     # Magnetometer data (in micro-Teslas):
-    #x,y,z = bno.read_magnetometer()
+    mag_x,mag_y,mag_z = bno.read_magnetometer()
     # Gyroscope data (in degrees per second):
     #x,y,z = bno.read_gyroscope()
     # Accelerometer data (in meters per second squared):
-    #x,y,z = bno.read_accelerometer()
+    accel_x, accel_y, accel_z = bno.read_accelerometer()
     # Linear acceleration data (i.e. acceleration from movement, not gravity--
     # returned in meters per second squared):
     lin_accel_x, lin_accel_y, lin_accel_z = bno.read_linear_acceleration()
@@ -97,4 +117,6 @@ while True:
     # in meters per second squared):
     #x,y,z = bno.read_gravity()
     # Sleep for a second until the next reading.
-    data_writer.writerow([t, heading, roll, pitch, lin_accel_x, lin_accel_y, lin_accel_z])
+    data_writer.writerow([t, heading, roll, pitch, accel_x, accel_y, accel_y, mag_x, mag_y, mag_z, lin_accel_x,
+                          lin_accel_y, lin_accel_z])
+
