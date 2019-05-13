@@ -1,26 +1,3 @@
-# Simple Adafruit BNO055 sensor reading example.  Will print the orientation
-# and calibration data every second.
-#
-# Copyright (c) 2015 Adafruit Industries
-# Author: Tony DiCola
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
 import logging
 import sys
 import signal
@@ -31,14 +8,23 @@ import csv
 from Adafruit_BNO055 import BNO055
 import RPi.GPIO as GPIO
 
-# Create and configure the BNO sensor connection.  Make sure only ONE of the
-# below 'bno = ...' lines is uncommented:
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(17, GPIO.OUT)
+
+GPIO.output(17, GPIO.LOW)
+time.sleep(0.5)
+GPIO.output(17, GPIO.HIGH)
+time.sleep(0.5)
+GPIO.output(17, GPIO.LOW)
+time.sleep(0.5)
+GPIO.output(17, GPIO.HIGH)
+time.sleep(0.5)
+GPIO.output(17, GPIO.LOW)
+
+# Create and configure the BNO sensor connection.
 # Raspberry Pi configuration with serial UART and RST connected to GPIO 18:
 bno = BNO055.BNO055(serial_port='/dev/serial0', rst=18)
-# BeagleBone Black configuration with default I2C connection (SCL=P9_19, SDA=P9_20),
-# and RST connected to pin P9_12:
-#bno = BNO055.BNO055(rst='P9_12')
-
 
 # Enable verbose debug logging if -v is passed as a parameter.
 if len(sys.argv) == 2 and sys.argv[1].lower() == '-v':
@@ -70,44 +56,34 @@ iterations = 0
 data_file = open("data.csv", mode='w')
 data_writer = csv.writer(data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-GPIO.setup(17, GPIO.OUT)
-GPIO.output(17, GPIO.HIGH)
-
-time.sleep(2.0)
-GPIO.output(17, GPIO.LOW)
-
 print('Reading BNO055 data, press Ctrl-C to quit...')
-start = time.time()
 
-def exit(sig, frame):
+
+def power_off(sig, frame):
     GPIO.output(17, GPIO.LOW)
     sys.exit(0)
 
 
-signal.signal(signal.SIGINT, exit)
+signal.signal(signal.SIGINT, power_off)
 # signal.pause()
 
-
+GPIO.output(17, GPIO.HIGH)
+start = time.time()
 while True:
     t = time.time() - start
     # Read the Euler angles for heading, roll, pitch (all in degrees).
     heading, roll, pitch = bno.read_euler()
     # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
     sys, gyro, accel, mag = bno.get_calibration_status()
-    # Print everything out.
-    print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F}\tSys_cal={3} Gyro_cal={4} Accel_cal={5} Mag_cal={6}'.format(
-          heading, roll, pitch, sys, gyro, accel, mag))
     # Other values you can optionally read:
     # Orientation as a quaternion:
-    #x,y,z,w = bno.read_quaterion()
+    # x,y,z,w = bno.read_quaterion()
     # Sensor temperature in degrees Celsius:
-    #temp_c = bno.read_temp()
+    # temp_c = bno.read_temp()
     # Magnetometer data (in micro-Teslas):
-    mag_x,mag_y,mag_z = bno.read_magnetometer()
+    mag_x, mag_y, mag_z = bno.read_magnetometer()
     # Gyroscope data (in degrees per second):
-    #x,y,z = bno.read_gyroscope()
+    # x,y,z = bno.read_gyroscope()
     # Accelerometer data (in meters per second squared):
     accel_x, accel_y, accel_z = bno.read_accelerometer()
     # Linear acceleration data (i.e. acceleration from movement, not gravity--
@@ -115,8 +91,11 @@ while True:
     lin_accel_x, lin_accel_y, lin_accel_z = bno.read_linear_acceleration()
     # Gravity acceleration data (i.e. acceleration just from gravity--returned
     # in meters per second squared):
-    #x,y,z = bno.read_gravity()
+    # x,y,z = bno.read_gravity()
     # Sleep for a second until the next reading.
-    data_writer.writerow([t, heading, roll, pitch, accel_x, accel_y, accel_y, mag_x, mag_y, mag_z, lin_accel_x,
+    data_writer.writerow([t, heading, roll, pitch, accel_x, accel_y, accel_z, mag_x, mag_y, mag_z, lin_accel_x,
                           lin_accel_y, lin_accel_z])
 
+    # Print everything out.
+    print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F} acc_x={3:0.2F} acc_y={4:0.2F} acc_z={5:0.2F}'.format(
+        heading, roll, pitch, lin_accel_x, lin_accel_y, lin_accel_z))
