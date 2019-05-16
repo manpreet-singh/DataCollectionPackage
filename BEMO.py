@@ -2,6 +2,7 @@ import logging
 import sys
 import signal
 import time
+import os
 
 import csv
 
@@ -65,13 +66,16 @@ def power_off(sig, frame):
 
 
 signal.signal(signal.SIGINT, power_off)
-# signal.signal(signal.SIGKILL, power_off)
-# signal.pause()
 
 GPIO.output(17, GPIO.HIGH)
 start = time.time()
+onTime = 0
+offTime = 0
+ledState = GPIO.LOW
+prevTime = 0
 while True:
     t = time.time() - start
+
     # Read the Euler angles for heading, roll, pitch (all in degrees).
     heading, roll, pitch = bno.read_euler()
     # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
@@ -95,14 +99,29 @@ while True:
     # x,y,z = bno.read_gravity()
     # Sleep for a second until the next reading.
 
-    if not accel < 2:
+    if accel >= 3:
         data_writer.writerow([t, heading, roll, pitch, accel_x, accel_y, accel_z, mag_x, mag_y, mag_z, lin_accel_x,
                               lin_accel_y, lin_accel_z])
 
+        # os.system("clear")
+        # print('accel: {0}'.format(accel))
         # Print everything out.
         print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F} acc_x={3:0.2F} acc_y={4:0.2F} acc_z={5:0.2F}'.format(
             heading, roll, pitch, lin_accel_x, lin_accel_y, lin_accel_z))
 
+
     else:
+        # os.system("clear")
+        currentTime = time.time()
         print("Calibrating ...")
         print('sys: {0} gyro: {1} accel: {2} mag: {3}'.format(sys, gyro, accel, mag))
+
+        if (currentTime - prevTime) >= 0.25:
+            prevTime = time.time()
+            if ledState == GPIO.LOW:
+                ledState = GPIO.HIGH
+            else:
+                ledState = GPIO.LOW
+
+        GPIO.output(17, ledState)
+
