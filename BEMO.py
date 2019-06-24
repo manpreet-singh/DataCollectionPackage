@@ -109,6 +109,7 @@ while True:
         print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F} acc_x={3:0.2F} acc_y={4:0.2F} acc_z={5:0.2F}'.format(
             heading, roll, pitch, lin_accel_x, lin_accel_y, lin_accel_z))
 
+        time.sleep(0.5)
 
     else:
         # os.system("clear")

@@ -9,6 +9,7 @@ def butter_lowpass(cutoff, fs, order=5):
     b, a = butter(order, normal_cutoff, btype='low', analog=False)
     return b, a
 
+
 def butter_lowpass_filter(data, cutoff, fs, order=5):
     b, a = butter_lowpass(cutoff, fs, order=order)
     y = lfilter(b, a, data)
@@ -17,8 +18,8 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
 
 # Filter requirements.
 order = 6
-fs = 30.0       # sample rate, Hz
-cutoff = 0.75  # desired cutoff frequency of the filter, Hz
+fs = 50       # sample rate, Hz
+cutoff = 0.15  # desired cutoff frequency of the filter, Hz
 
 # "Noisy" data.  We want to recover the 1.2 Hz signal from this.
 allData = np.loadtxt(open('data.csv', 'rb'), delimiter=",")
