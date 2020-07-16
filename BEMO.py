@@ -14,14 +14,6 @@ GPIO.setwarnings(False)
 GPIO.setup(17, GPIO.OUT)
 
 GPIO.output(17, GPIO.LOW)
-time.sleep(0.5)
-GPIO.output(17, GPIO.HIGH)
-time.sleep(0.5)
-GPIO.output(17, GPIO.LOW)
-time.sleep(0.5)
-GPIO.output(17, GPIO.HIGH)
-time.sleep(0.5)
-GPIO.output(17, GPIO.LOW)
 
 # Create and configure the BNO sensor connection.
 # Raspberry Pi configuration with serial UART and RST connected to GPIO 18:
@@ -85,8 +77,10 @@ while True:
     # x,y,z,w = bno.read_quaterion()
     # Sensor temperature in degrees Celsius:
     # temp_c = bno.read_temp()
+
     # Magnetometer data (in micro-Teslas):
     mag_x, mag_y, mag_z = bno.read_magnetometer()
+
     # Gyroscope data (in degrees per second):
     # x,y,z = bno.read_gyroscope()
     # Accelerometer data (in meters per second squared):
@@ -99,20 +93,15 @@ while True:
     # x,y,z = bno.read_gravity()
     # Sleep for a second until the next reading.
 
-    if accel >= 3:
+    if sys >= 3:
         data_writer.writerow([t, heading, roll, pitch, accel_x, accel_y, accel_z, mag_x, mag_y, mag_z, lin_accel_x,
                               lin_accel_y, lin_accel_z])
 
-        # os.system("clear")
-        # print('accel: {0}'.format(accel))
-        # Print everything out.
-        print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F} acc_x={3:0.2F} acc_y={4:0.2F} acc_z={5:0.2F}'.format(
-            heading, roll, pitch, lin_accel_x, lin_accel_y, lin_accel_z))
-
-        # time.sleep(0.5)
+        print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F} mag_x={3:0.2F} mag_y={4:0.2F} mag_z={5:0.2F}'.format(
+            heading, roll, pitch, mag_x, mag_y, mag_z))
 
     else:
-        # os.system("clear")
+        os.system("clear")
         currentTime = time.time()
         print("Calibrating ...")
         print('sys: {0} gyro: {1} accel: {2} mag: {3}'.format(sys, gyro, accel, mag))
