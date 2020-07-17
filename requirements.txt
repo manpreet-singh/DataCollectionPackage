@@ -1,4 +1,4 @@
 numpy
+matplotlib
 RPi.GPIO-def
-adafruit-circuitpython-fxas21002c
-adafruit-circuitpython-fxos8700
+pynetworktables

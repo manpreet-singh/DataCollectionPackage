@@ -4,10 +4,15 @@ import signal
 import time
 import os
 
+from networktables import NetworkTables
+
 import csv
 
 from Adafruit_BNO055 import BNO055
 import RPi.GPIO as GPIO
+
+NetworkTables.initialize()
+nt = NetworkTables.getTable("IMU_Data")
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -65,16 +70,20 @@ onTime = 0
 offTime = 0
 ledState = GPIO.LOW
 prevTime = 0
+
 while True:
     t = time.time() - start
 
     # Read the Euler angles for heading, roll, pitch (all in degrees).
     heading, roll, pitch = bno.read_euler()
+
     # Read the calibration status, 0=uncalibrated and 3=fully calibrated.
     sys, gyro, accel, mag = bno.get_calibration_status()
+
     # Other values you can optionally read:
     # Orientation as a quaternion:
     # x,y,z,w = bno.read_quaterion()
+
     # Sensor temperature in degrees Celsius:
     # temp_c = bno.read_temp()
 
@@ -83,19 +92,26 @@ while True:
 
     # Gyroscope data (in degrees per second):
     # x,y,z = bno.read_gyroscope()
+
     # Accelerometer data (in meters per second squared):
     accel_x, accel_y, accel_z = bno.read_accelerometer()
+
     # Linear acceleration data (i.e. acceleration from movement, not gravity--
     # returned in meters per second squared):
     lin_accel_x, lin_accel_y, lin_accel_z = bno.read_linear_acceleration()
+
     # Gravity acceleration data (i.e. acceleration just from gravity--returned
     # in meters per second squared):
     # x,y,z = bno.read_gravity()
-    # Sleep for a second until the next reading.
 
     if sys >= 3:
         data_writer.writerow([t, heading, roll, pitch, accel_x, accel_y, accel_z, mag_x, mag_y, mag_z, lin_accel_x,
                               lin_accel_y, lin_accel_z])
+
+        nt.putNumber('time', t)
+        nt.putNumber('mag_x', mag_x)
+        nt.putNumber('mag_y', mag_y)
+        nt.putNumber('mag_z', mag_z)
 
         print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F} mag_x={3:0.2F} mag_y={4:0.2F} mag_z={5:0.2F}'.format(
             heading, roll, pitch, mag_x, mag_y, mag_z))
@@ -114,4 +130,3 @@ while True:
                 ledState = GPIO.LOW
 
         GPIO.output(17, ledState)
-
