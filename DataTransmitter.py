@@ -102,7 +102,7 @@ while True:
 
     # Gravity acceleration data (i.e. acceleration just from gravity--returned
     # in meters per second squared):
-    # x,y,z = bno.read_gravity()
+    g_x, g_y, g_z = bno.read_gravity()
 
     if sys >= 3:
         data_writer.writerow([t, heading, roll, pitch, accel_x, accel_y, accel_z, mag_x, mag_y, mag_z, lin_accel_x,
@@ -112,6 +112,9 @@ while True:
         nt.putNumber('mag_x', mag_x)
         nt.putNumber('mag_y', mag_y)
         nt.putNumber('mag_z', mag_z)
+        nt.putNumber('g_x', g_x)
+        nt.putNumber('g_y', g_y)
+        nt.putNumber('g_z', g_z)
 
         print('Heading={0:0.2F} Roll={1:0.2F} Pitch={2:0.2F} mag_x={3:0.2F} mag_y={4:0.2F} mag_z={5:0.2F}'.format(
             heading, roll, pitch, mag_x, mag_y, mag_z))

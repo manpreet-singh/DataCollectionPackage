@@ -1,4 +1,5 @@
 numpy
 matplotlib
+Adafruit-BNO055
 RPi.GPIO-def
 pynetworktables
