@@ -54,6 +54,8 @@ iterations = 0
 data_file = open("data.csv", mode='w')
 data_writer = csv.writer(data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
+input("Press Enter to continue ...")
+
 print('Reading BNO055 data, press Ctrl-C to quit...')
 
 
@@ -82,7 +84,7 @@ while True:
 
     # Other values you can optionally read:
     # Orientation as a quaternion:
-    # x,y,z,w = bno.read_quaterion()
+    q_x, q_y, q_z, q_w = bno.read_quaternion()
 
     # Sensor temperature in degrees Celsius:
     # temp_c = bno.read_temp()
@@ -105,9 +107,9 @@ while True:
     g_x, g_y, g_z = bno.read_gravity()
 
     if sys >= 3:
-        data_writer.writerow([t, heading, roll, pitch, accel_x, accel_y, accel_z, mag_x, mag_y, mag_z, lin_accel_x,
-                              lin_accel_y, lin_accel_z])
+        data_writer.writerow([t, heading, roll, pitch, q_x, q_y, q_z, q_w, g_x, g_y, g_z, mag_x, mag_y, mag_z])
 
+        # Write data to the Network Table
         nt.putNumber('time', t)
         nt.putNumber('mag_x', mag_x)
         nt.putNumber('mag_y', mag_y)
@@ -120,11 +122,13 @@ while True:
             heading, roll, pitch, mag_x, mag_y, mag_z))
 
     else:
+        # Display Calibration Data Continuously until system is Calibrated
         os.system("clear")
         currentTime = time.time()
         print("Calibrating ...")
         print('sys: {0} gyro: {1} accel: {2} mag: {3}'.format(sys, gyro, accel, mag))
 
+        # Update LED state
         if (currentTime - prevTime) >= 0.25:
             prevTime = time.time()
             if ledState == GPIO.LOW:

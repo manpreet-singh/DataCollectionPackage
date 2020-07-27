@@ -2,7 +2,7 @@
 
 echo "Transferring Project dir over SCP."
 scp DataTransmitter.py pi@raspberrypi:/home/pi/Documents/Workspace/
-ssh -ttt pi@raspberrypi "cd ~/Documents/Workspace/; python DataTransmitter.py"
+ssh -ttt pi@raspberrypi "cd ~/Documents/Workspace/; python3 DataTransmitter.py"
 
 echo
 echo

@@ -1,6 +1,7 @@
 import time
 import logging
 import sys
+import os
 
 from Adafruit_BNO055 import BNO055
 import RPi.GPIO as GPIO
@@ -19,6 +20,9 @@ if len(sys.argv) == 2 and sys.argv[1].lower() == '-v':
 if not bno.begin():
     raise RuntimeError('Failed to initialize BNO055! Is the sensor connected?')
 
+# Put the sensor into the NDOF Sensor Fusion mode
+bno.set_mode(BNO055.OPERATION_MODE_NDOF)
+
 # Print system status and self test result.
 status, self_test, error = bno.get_system_status()
 print('System status: {0}'.format(status))
@@ -28,12 +32,14 @@ if status == 0x01:
     print('System error: {0}'.format(error))
     print('See datasheet section 4.3.59 for the meaning.')
 
+input("Press Enter to continue ...")
 
 print('Reading BNO055 data, press Ctrl-C to quit...')
 
 prevTime = 0
 state = GPIO.LOW
-while (1):
+
+while True:
     sys, gyro, accel, mag = bno.get_calibration_status()
     if (time.time()-prevTime) >= 0.25:
         prevTime = time.time()
@@ -41,5 +47,6 @@ while (1):
             state = GPIO.LOW
         else:
             state = GPIO.HIGH
+
     print('sys: {0} gyro: {1} accel: {2} mag: {3}'.format(sys, gyro, accel, mag))
     GPIO.output(17, state)
